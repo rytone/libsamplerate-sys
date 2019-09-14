@@ -5,9 +5,7 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
-    let mut dst = cmake::Config::new("libsamplerate")
-        .very_verbose(true)
-        .build();
+    let mut dst = cmake::build("libsamplerate");
 
     dst.push("lib");
 
