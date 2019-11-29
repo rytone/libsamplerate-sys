@@ -4,6 +4,12 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+impl Default for SRC_DATA {
+    fn default() -> Self {
+        unsafe { std::mem::zeroed() }
+    }
+}
+
 #[cfg(test)]
 #[macro_use]
 extern crate all_asserts;
@@ -34,7 +40,11 @@ mod tests {
                 src_ratio: ratio,
                 ..Default::default()
             };
-            let err = src_simple(&mut src_pass_1 as *mut SRC_DATA, SRC_SINC_BEST_QUALITY as i32, 1);
+            let err = src_simple(
+                &mut src_pass_1 as *mut SRC_DATA,
+                SRC_SINC_BEST_QUALITY as i32,
+                1,
+            );
             assert_eq!(err, 0);
             assert_eq!(src_pass_1.output_frames_gen, src_pass_1.output_frames);
             assert_eq!(src_pass_1.input_frames_used, src_pass_1.input_frames);
@@ -45,17 +55,24 @@ mod tests {
                 data_out: output.as_mut_ptr(),
                 input_frames: (resampled.len() as i32).into(),
                 output_frames: (output.len() as i32).into(),
-                src_ratio: 1f64/ratio,
+                src_ratio: 1f64 / ratio,
                 ..Default::default()
             };
-            let err = src_simple(&mut src_pass_2 as *mut SRC_DATA, SRC_SINC_BEST_QUALITY as i32, 1);
+            let err = src_simple(
+                &mut src_pass_2 as *mut SRC_DATA,
+                SRC_SINC_BEST_QUALITY as i32,
+                1,
+            );
             assert_eq!(err, 0);
             assert_eq!(src_pass_2.output_frames_gen, src_pass_2.output_frames);
             assert_eq!(src_pass_2.input_frames_used, src_pass_2.input_frames);
 
             // Expect the difference between all input frames and all output frames to be less than
             // an epsilon.
-            let error = input.iter().zip(output).fold(0f32, |max, (input, output)| max.max((input - output).abs()));
+            let error = input
+                .iter()
+                .zip(output)
+                .fold(0f32, |max, (input, output)| max.max((input - output).abs()));
             assert_lt!(error, 0.002);
         }
     }
@@ -75,7 +92,8 @@ mod tests {
 
             // Create the samplerate converter.
             let mut error = 0i32;
-            let converter: *mut SRC_STATE = src_new(SRC_SINC_BEST_QUALITY as i32, 1, &mut error as *mut i32);
+            let converter: *mut SRC_STATE =
+                src_new(SRC_SINC_BEST_QUALITY as i32, 1, &mut error as *mut i32);
 
             assert_eq!(error, 0);
 
@@ -91,7 +109,7 @@ mod tests {
 
             // Convert the input data in slices.
             let mut out_pos = 0;
-            for i in 0..slices+1 {
+            for i in 0..slices + 1 {
                 if i == (slices - 1) {
                     src.end_of_input = 1;
                 }
@@ -119,10 +137,14 @@ mod tests {
                 data_out: output.as_mut_ptr(),
                 input_frames: (resampled.len() as i32).into(),
                 output_frames: (output.len() as i32).into(),
-                src_ratio: 1f64/ratio,
+                src_ratio: 1f64 / ratio,
                 ..Default::default()
             };
-            let err = src_simple(&mut src_reverse as *mut SRC_DATA, SRC_SINC_BEST_QUALITY as i32, 1);
+            let err = src_simple(
+                &mut src_reverse as *mut SRC_DATA,
+                SRC_SINC_BEST_QUALITY as i32,
+                1,
+            );
 
             assert_eq!(err, 0);
             assert_eq!(src_reverse.output_frames_gen, src_reverse.output_frames);
@@ -130,7 +152,10 @@ mod tests {
 
             // Expect the difference between all input frames and all output frames to be less than
             // an epsilon.
-            let error = input.iter().zip(output).fold(0f32, |max, (input, output)| max.max((input - output).abs()));
+            let error = input
+                .iter()
+                .zip(output)
+                .fold(0f32, |max, (input, output)| max.max((input - output).abs()));
             assert_lt!(error, 0.002);
         }
     }
